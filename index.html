@@ -23,6 +23,7 @@
 
   <!-- Tailwind (no dark mode styles used) -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 
   <!-- gif.js (web‑worker build) -->
   <script defer src="https://cdn.jsdelivr.net/npm/gif.js.optimized@0.10.4/dist/gif.js"></script>
@@ -248,6 +249,14 @@
   </div>
 
   <script>
+    const gif = new GIF({
+  workers: 2,
+  quality: 10,
+  workerScript: "https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js",
+  width,
+  height,
+  repeat
+});
   // ------------ Utility helpers ------------
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
