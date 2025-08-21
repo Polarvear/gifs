@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PNG ➜ GIF Converter (Client‑side, No Uploads)</title>
+  <meta name="description" content="Convert one or more PNG images into an animated GIF entirely in your browser. 100% client‑side. Adjust frame speed and loop count. No dark mode." />
+  <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1" />
+  <link rel="canonical" href="https://YOUR-DOMAIN.example/png-to-gif" />
+  <meta name="keywords" content="PNG to GIF, animated GIF maker, image to GIF, offline converter, client-side" />
+
+  <!-- Open Graph / Twitter -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="PNG ➜ GIF Converter (Client‑side)" />
+  <meta property="og:description" content="Make animated GIFs from PNGs in your browser. Set frame speed and loop count. No uploads." />
+  <meta property="og:url" content="https://YOUR-DOMAIN.example/png-to-gif" />
+  <meta property="og:image" content="https://YOUR-DOMAIN.example/og.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+  <link rel="stylesheet" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?display=swap&family=Noto+Sans:wght@400;500;700;900&family=Work+Sans:wght@400;500;700;900" />
+
+  <!-- Tailwind (no dark mode styles used) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+  <!-- gif.js (web‑worker build) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/gif.js.optimized@0.10.4/dist/gif.js"></script>
+
+  <!-- Structured Data: WebApplication + FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "PNG to GIF Converter",
+    "url": "https://YOUR-DOMAIN.example/png-to-gif",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Web",
+    "offers": {"@type":"Offer","price":"0","priceCurrency":"USD"}
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type":"Question","name":"How do I convert PNG to GIF?","acceptedAnswer":{"@type":"Answer","text":"Add PNG files in order, set seconds per frame and loop count, then click Convert. All processing happens locally in your browser; no images are uploaded."}},
+      {"@type":"Question","name":"Is there a limit to the number of PNG files?","acceptedAnswer":{"@type":"Answer","text":"For stability we recommend up to 50 frames and under ~50 MB total, though modern browsers can handle more depending on memory."}},
+      {"@type":"Question","name":"How long does conversion take?","acceptedAnswer":{"@type":"Answer","text":"Usually a few seconds for small images. Larger images or many frames take longer because each frame is encoded on your device."}}
+    ]
+  }
+  </script>
+
+  <!-- OPTIONAL: Google AdSense (safe to include before approval; ads won’t serve until approved) -->
+  <!--
+    1) Replace ca-pub-XXXX with your publisher id.
+    2) Replace data-ad-slot with your Ad Unit ID (e.g., 1234567890).
+    If you haven’t been approved yet, you can leave this commented out. The page shows a polite placeholder instead.
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+  -->
+
+  <style>
+    /* No dark mode; ensure neutral, legible light UI */
+    html, body { background: #f8fafc; }
+    .visually-hidden { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
+  </style>
+</head>
+<body class="min-h-screen text-[#0d141c]" style='font-family:"Work Sans","Noto Sans",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;'>
+  <noscript>
+    <div class="m-4 p-4 bg-red-50 border border-red-200 rounded">JavaScript is required for this tool.</div>
+  </noscript>
+
+  <div class="relative flex size-full min-h-screen flex-col bg-slate-50 group/design-root overflow-x-hidden">
+    <div class="layout-container flex h-full grow flex-col">
+      <!-- Header -->
+      <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e7edf4] px-6 md:px-10 py-3">
+        <div class="flex items-center gap-3 md:gap-4 text-[#0d141c]">
+          <div class="size-5 md:size-6">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <g clip-path="url(#clip0_6_543)">
+                <path d="M42.1739 20.1739L27.8261 5.82609C29.1366 7.13663 28.3989 10.1876 26.2002 13.7654C24.8538 15.9564 22.9595 18.3449 20.6522 20.6522C18.3449 22.9595 15.9564 24.8538 13.7654 26.2002C10.1876 28.3989 7.13663 29.1366 5.82609 27.8261L20.1739 42.1739C21.4845 43.4845 24.5355 42.7467 28.1133 40.548C30.3042 39.2016 32.6927 37.3073 35 35C37.3073 32.6927 39.2016 30.3042 40.548 28.1133C42.7467 24.5355 43.4845 21.4845 42.1739 20.1739Z" fill="currentColor"></path>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M7.24189 26.4066C7.31369 26.4411 7.64204 26.5637 8.52504 26.3738C9.59462 26.1438 11.0343 25.5311 12.7183 24.4963C14.7583 23.2426 17.0256 21.4503 19.238 19.238C21.4503 17.0256 23.2426 14.7583 24.4963 12.7183C25.5311 11.0343 26.1438 9.59463 26.3738 8.52504C26.5637 7.64204 26.4411 7.31369 26.4066 7.24189C26.345 7.21246 26.143 7.14535 25.6664 7.1918C24.9745 7.25925 23.9954 7.5498 22.7699 8.14278C20.3369 9.32007 17.3369 11.4915 14.4142 14.4142C11.4915 17.3369 9.32007 20.3369 8.14278 22.7699C7.5498 23.9954 7.25925 24.9745 7.1918 25.6664C7.14534 26.143 7.21246 26.345 7.24189 26.4066ZM29.9001 10.7285C29.4519 12.0322 28.7617 13.4172 27.9042 14.8126C26.465 17.1544 24.4686 19.6641 22.0664 22.0664C19.6641 24.4686 17.1544 26.465 14.8126 27.9042C13.4172 28.7617 12.0322 29.4519 10.7285 29.9001L21.5754 40.747C21.6001 40.7606 21.8995 40.931 22.8729 40.7217C23.9424 40.4916 25.3821 39.879 27.0661 38.8441C29.1062 37.5904 31.3734 35.7982 33.5858 33.5858C35.7982 31.3734 37.5904 29.1062 38.8441 27.0661C39.879 25.3821 40.4916 23.9425 40.7216 22.8729C40.931 21.8995 40.7606 21.6001 40.747 21.5754L29.9001 10.7285ZM29.2403 4.41187L43.5881 18.7597C44.9757 20.1473 44.9743 22.1235 44.6322 23.7139C44.2714 25.3919 43.4158 27.2666 42.252 29.1604C40.8128 31.5022 38.8165 34.012 36.4142 36.4142C34.012 38.8165 31.5022 40.8128 29.1604 42.252C27.2666 43.4158 25.3919 44.2714 23.7139 44.6322C22.1235 44.9743 20.1473 44.9757 18.7597 43.5881L4.41187 29.2403C3.29027 28.1187 3.08209 26.5973 3.21067 25.2783C3.34099 23.9415 3.8369 22.4852 4.54214 21.0277C5.96129 18.0948 8.43335 14.7382 11.5858 11.5858C14.7382 8.43335 18.0948 5.9613 21.0277 4.54214C22.4852 3.8369 23.9415 3.34099 25.2783 3.21067C26.5973 3.08209 28.1187 3.29028 29.2403 4.41187Z" fill="currentColor"></path>
+              </g>
+              <defs><clipPath id="clip0_6_543"><rect width="48" height="48" fill="white"></rect></clipPath></defs>
+            </svg>
+          </div>
+          <h1 class="text-lg md:text-xl font-bold leading-tight tracking-[-0.015em]">Image Converter</h1>
+        </div>
+        <nav class="flex flex-1 justify-end gap-4 md:gap-8">
+          <div class="hidden sm:flex items-center gap-6">
+            <a class="text-sm font-medium" href="#">PNG to GIF</a>
+            <a class="text-sm font-medium opacity-60 hover:opacity-100" href="#faq">FAQ</a>
+          </div>
+          <a href="#about" class="flex min-w-[84px] items-center justify-center rounded-lg h-10 px-4 bg-[#e7edf4] text-sm font-bold">About</a>
+        </nav>
+      </header>
+
+      <!-- Main -->
+      <main class="px-4 md:px-10 lg:px-20 flex flex-1 justify-center py-6">
+        <div class="layout-content-container flex flex-col w-full max-w-[980px]">
+          <h2 class="text-[28px] md:text-[32px] font-bold leading-tight text-center">Convert PNG to GIF</h2>
+          <p class="text-base text-center text-[#334155] mt-2">Client‑side animated GIF maker. Drag & drop PNGs in the order you want, set <strong>seconds per frame</strong> and <strong>loop count</strong>, then convert.</p>
+
+          <!-- Dropzone / Picker -->
+          <section class="mt-6">
+            <div id="dropzone" class="flex flex-col items-center gap-4 rounded-lg border-2 border-dashed border-[#cedbe8] bg-white px-6 py-10">
+              <div class="max-w-[600px] text-center">
+                <p class="text-lg font-bold">Drag & drop your PNG files here</p>
+                <p class="text-sm">or</p>
+              </div>
+              <button id="browseBtn" class="rounded-lg h-10 px-4 bg-[#e7edf4] text-sm font-bold">Browse Files</button>
+              <input id="fileInput" class="visually-hidden" type="file" accept="image/png" multiple>
+              <p id="fileHint" class="text-xs text-[#64748b]">Tip: Files are sorted by name. Keep names numbered (e.g., 001.png, 002.png).</p>
+            </div>
+
+            <!-- Queue Preview -->
+            <div id="queue" class="mt-5 hidden">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-base font-semibold">Frames (<span id="frameCount">0</span>)</h3>
+                <div class="flex gap-2">
+                  <button id="sortName" class="text-sm px-3 h-9 rounded border border-slate-300 bg-white">Sort by name</button>
+                  <button id="sortTime" class="text-sm px-3 h-9 rounded border border-slate-300 bg-white">Sort by time</button>
+                  <button id="clearBtn" class="text-sm px-3 h-9 rounded border border-rose-200 bg-rose-50 text-rose-700">Clear</button>
+                </div>
+              </div>
+              <div id="thumbs" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+            </div>
+          </section>
+
+          <!-- Settings -->
+          <section class="mt-6">
+            <h3 class="text-[20px] font-bold">Optional Settings</h3>
+            <div class="max-w-[560px] flex flex-wrap items-end gap-4 mt-2">
+              <label class="flex flex-col min-w-40 flex-1">
+                <span class="text-base font-medium pb-2">Animation Speed (seconds per frame)</span>
+                <input id="spf" inputmode="decimal" placeholder="0.5" class="form-input w-full rounded-lg border border-[#cedbe8] bg-slate-50 h-12 p-3" />
+              </label>
+              <label class="flex flex-col min-w-40 flex-1">
+                <span class="text-base font-medium pb-2">Loop Count</span>
+                <input id="loops" inputmode="numeric" placeholder="0 (infinite)" class="form-input w-full rounded-lg border border-[#cedbe8] bg-slate-50 h-12 p-3" />
+              </label>
+            </div>
+            <div class="max-w-[560px] flex items-center gap-4 mt-3">
+              <label class="inline-flex items-center gap-2 text-sm">
+                <input id="fitContain" type="checkbox" class="rounded border-slate-300" checked>
+                <span>Pad to match first frame size (contain)</span>
+              </label>
+            </div>
+            <div class="flex justify-center mt-5">
+              <button id="convertBtn" class="rounded-lg h-11 px-5 bg-[#3d99f5] text-white text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed">Convert to GIF</button>
+            </div>
+
+            <!-- Progress / Result -->
+            <div id="progressWrap" class="max-w-[560px] mx-auto mt-4 hidden">
+              <div class="w-full bg-slate-200 rounded h-3 overflow-hidden">
+                <div id="progressBar" class="h-3 w-0 bg-blue-500"></div>
+              </div>
+              <p id="progressText" class="text-xs text-[#475569] mt-2">Encoding…</p>
+            </div>
+
+            <div id="result" class="mt-6 hidden">
+              <h3 class="text-base font-semibold mb-2">Result</h3>
+              <div class="rounded border border-slate-200 bg-white p-4 flex flex-col gap-3 items-center">
+                <img id="gifPreview" alt="GIF preview" class="max-h-[360px] object-contain" />
+                <div id="resultMeta" class="text-sm text-[#334155]"></div>
+                <a id="downloadLink" class="inline-flex items-center justify-center h-10 px-4 rounded bg-[#e7edf4] font-semibold" download>Download GIF</a>
+              </div>
+            </div>
+          </section>
+
+          <!-- In‑content Ad Slot / Placeholder (below main CTA; adheres to page experience) -->
+          <section class="mt-10" aria-labelledby="sponsored">
+            <h3 id="sponsored" class="text-sm font-semibold text-[#64748b] mb-2">Sponsored</h3>
+            <div class="min-h-[120px] flex items-center justify-center rounded border border-slate-200 bg-white p-2">
+              <!-- If AdSense is configured, uncomment this block and remove the placeholder below.
+              <ins class="adsbygoogle"
+                   style="display:block"
+                   data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                   data-ad-slot="YYYYYYYYYY"
+                   data-ad-format="auto"
+                   data-full-width-responsive="true"></ins>
+              <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+              -->
+              <p class="text-xs text-[#475569]">Ad space — configure Google AdSense to display here.</p>
+            </div>
+          </section>
+
+          <!-- FAQ -->
+          <section id="faq" class="mt-12">
+            <h3 class="text-[20px] font-bold">FAQ</h3>
+            <div class="flex flex-col gap-3 mt-2">
+              <details class="rounded border border-[#cedbe8] bg-slate-50 px-4 py-2">
+                <summary class="flex cursor-pointer items-center justify-between py-2"><span class="text-sm font-medium">How do I convert PNG to GIF?</span></summary>
+                <p class="text-sm text-[#475569] pb-2">Click <em>Browse Files</em> (or drop images), ensure they are in the desired order, set <em>seconds per frame</em> and <em>loop count</em>, then click <strong>Convert to GIF</strong>. Everything is processed locally in your browser.</p>
+              </details>
+              <details class="rounded border border-[#cedbe8] bg-slate-50 px-4 py-2">
+                <summary class="flex cursor-pointer items-center justify-between py-2"><span class="text-sm font-medium">Is there a limit to the number of PNG files?</span></summary>
+                <p class="text-sm text-[#475569] pb-2">For smooth performance, try fewer than 50 frames and keep each image under ~5 MB. Actual limits depend on your device memory.</p>
+              </details>
+              <details class="rounded border border-[#cedbe8] bg-slate-50 px-4 py-2">
+                <summary class="flex cursor-pointer items-center justify-between py-2"><span class="text-sm font-medium">How long does it take?</span></summary>
+                <p class="text-sm text-[#475569] pb-2">Small images: seconds. Large images or many frames: longer. Encoding runs on your device using a web worker for responsiveness.</p>
+              </details>
+              <details class="rounded border border-[#cedbe8] bg-slate-50 px-4 py-2">
+                <summary class="flex cursor-pointer items-center justify-between py-2"><span class="text-sm font-medium">Will my images be uploaded?</span></summary>
+                <p class="text-sm text-[#475569] pb-2">No. This is a 100% client‑side tool; files never leave your browser.</p>
+              </details>
+            </div>
+            <p class="text-xs text-center text-[#64748b] mt-3">Need help? See <a href="#about" class="underline">About</a> for contact details.</p>
+          </section>
+
+          <!-- About / Policy (helps AdSense review; crawlable content) -->
+          <section id="about" class="mt-12">
+            <h3 class="text-[20px] font-bold">About</h3>
+            <p class="text-sm text-[#334155] mt-2">PNG ➜ GIF Converter is a free, client‑side utility for creating animated GIFs from PNG images. We focus on privacy (no uploads), fast performance, and accessibility. This site contains helpful guidance, transparent policies, and a clear purpose to meet program requirements for ad networks including Google AdSense.</p>
+          </section>
+        </div>
+      </main>
+
+      <!-- Footer with crawlable policy content (anchors) -->
+      <footer class="flex justify-center">
+        <div class="flex w-full max-w-[980px] flex-col">
+          <div class="flex flex-col gap-6 px-5 py-10 text-center @container">
+            <div class="flex flex-wrap items-center justify-center gap-6 @[480px]:flex-row @[480px]:justify-around">
+              <a class="text-[#49739c] text-base" href="#privacy">Privacy Policy</a>
+              <a class="text-[#49739c] text-base" href="#terms">Terms of Service</a>
+              <a class="text-[#49739c] text-base" href="#contact">Contact</a>
+            </div>
+            <p class="text-[#49739c] text-base">© <span id="year"></span> Image Converter. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+
+      <!-- Policy sections (on same page so crawlers can index) -->
+      <section id="privacy" class="px-5 md:px-10 lg:px-20 pb-10">
+        <h3 class="text-xl font-bold mb-2">Privacy Policy</h3>
+        <p class="text-sm text-[#334155]">We do not upload or store your images. All conversions happen locally in your browser using JavaScript and Web Workers. We may use privacy‑friendly analytics to understand usage (page views only, no personal data). If advertising is enabled, third‑party ad partners may set cookies as described in their own policies. You can contact us to request deletion of any information you’ve explicitly submitted via forms (if any).</p>
+      </section>
+      <section id="terms" class="px-5 md:px-10 lg:px-20 pb-10">
+        <h3 class="text-xl font-bold mb-2">Terms of Service</h3>
+        <p class="text-sm text-[#334155]">This tool is provided “as is,” without warranty. You are responsible for ensuring you have rights to any images you convert. We are not liable for any loss or damages arising from use of this site. By using this site you agree to these terms.</p>
+      </section>
+      <section id="contact" class="px-5 md:px-10 lg:px-20 pb-10">
+        <h3 class="text-xl font-bold mb-2">Contact</h3>
+        <p class="text-sm text-[#334155]">Questions? Email: <a class="underline" href="mailto:hello@YOUR-DOMAIN.example">hello@YOUR-DOMAIN.example</a></p>
+      </section>
+    </div>
+  </div>
+
+  <script>
+  // ------------ Utility helpers ------------
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  function byNameAsc(a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }); }
+  function byTimeAsc(a, b) { return a.lastModified - b.lastModified; }
+
+  // ------------ State ------------
+  let files = []; // File[] of PNGs
+
+  // ------------ Elements ------------
+  const fileInput = $('#fileInput');
+  const browseBtn = $('#browseBtn');
+  const dropzone = $('#dropzone');
+  const thumbs = $('#thumbs');
+  const frameCount = $('#frameCount');
+  const queueWrap = $('#queue');
+  const clearBtn = $('#clearBtn');
+  const sortNameBtn = $('#sortName');
+  const sortTimeBtn = $('#sortTime');
+
+  const spfInput = $('#spf');
+  const loopsInput = $('#loops');
+  const fitContainChk = $('#fitContain');
+  const convertBtn = $('#convertBtn');
+
+  const progressWrap = $('#progressWrap');
+  const progressBar = $('#progressBar');
+  const progressText = $('#progressText');
+
+  const resultWrap = $('#result');
+  const gifPreview = $('#gifPreview');
+  const resultMeta = $('#resultMeta');
+  const downloadLink = $('#downloadLink');
+
+  $('#year').textContent = new Date().getFullYear();
+
+  // ------------ File selection & queue ------------
+  browseBtn.addEventListener('click', () => fileInput.click(), { passive: true });
+  fileInput.addEventListener('change', (e) => {
+    addFiles(e.target.files);
+    fileInput.value = '';
+  });
+
+  ;['dragenter','dragover'].forEach(type => dropzone.addEventListener(type, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dropzone.classList.add('ring-2','ring-blue-300','bg-blue-50');
+  }));
+  ;['dragleave','drop'].forEach(type => dropzone.addEventListener(type, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dropzone.classList.remove('ring-2','ring-blue-300','bg-blue-50');
+  }));
+  dropzone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    if (!dt) return;
+    addFiles(dt.files);
+  });
+
+  function addFiles(list) {
+    const incoming = Array.from(list).filter(f => f.type === 'image/png');
+    if (!incoming.length) return;
+    files = files.concat(incoming);
+    // default sort by name for predictable order
+    files.sort(byNameAsc);
+    renderQueue();
+    convertBtn.disabled = files.length === 0;
+  }
+
+  function renderQueue() {
+    frameCount.textContent = String(files.length);
+    queueWrap.classList.toggle('hidden', files.length === 0);
+    thumbs.innerHTML = '';
+    files.forEach((f, idx) => {
+      const url = URL.createObjectURL(f);
+      const card = document.createElement('div');
+      card.className = 'border border-slate-200 rounded bg-white p-2 flex flex-col gap-2';
+      card.innerHTML = `
+        <img src="${url}" alt="frame ${idx+1}" class="w-full aspect-square object-contain" loading="lazy" />
+        <div class="text-xs text-[#475569] truncate" title="${f.name}">${idx+1}. ${f.name}</div>
+        <div class="flex gap-2">
+          <button class="text-xs px-2 h-7 rounded border border-slate-300 bg-white move-up">↑</button>
+          <button class="text-xs px-2 h-7 rounded border border-slate-300 bg-white move-down">↓</button>
+          <button class="text-xs px-2 h-7 rounded border border-rose-200 bg-rose-50 text-rose-700 remove">Remove</button>
+        </div>`;
+      card.querySelector('.move-up').addEventListener('click', () => { move(idx, -1); });
+      card.querySelector('.move-down').addEventListener('click', () => { move(idx, +1); });
+      card.querySelector('.remove').addEventListener('click', () => { files.splice(idx,1); renderQueue(); convertBtn.disabled = files.length===0; });
+      thumbs.appendChild(card);
+    });
+  }
+
+  function move(i, delta) {
+    const j = i + delta;
+    if (j < 0 || j >= files.length) return;
+    const tmp = files[i];
+    files[i] = files[j];
+    files[j] = tmp;
+    renderQueue();
+  }
+
+  clearBtn.addEventListener('click', () => { files = []; renderQueue(); convertBtn.disabled = true; });
+  sortNameBtn.addEventListener('click', () => { files.sort(byNameAsc); renderQueue(); });
+  sortTimeBtn.addEventListener('click', () => { files.sort(byTimeAsc); renderQueue(); });
+
+  // ------------ Conversion (gif.js) ------------
+  convertBtn.addEventListener('click', async () => {
+    if (!files.length) return;
+
+    // Parse settings
+    const spf = Math.max(0.01, Number.parseFloat(spfInput.value || '0.5'));
+    const delayMs = Math.round(spf * 1000);
+    let repeat = 0; // 0 = infinite
+    if ((loopsInput.value || '').trim() !== '') {
+      const parsed = Number.parseInt(loopsInput.value, 10);
+      if (!Number.isNaN(parsed) && parsed >= 0) repeat = parsed; // gif.js: repeat count, 0 = forever
+    }
+
+    progressWrap.classList.remove('hidden');
+    progressBar.style.width = '0%';
+    progressText.textContent = 'Preparing frames…';
+
+    try {
+      // Load first image to determine canvas size
+      const first = await fileToImage(files[0]);
+      const width = first.width;
+      const height = first.height;
+
+      const workerScript = 'https://cdn.jsdelivr.net/npm/gif.js.optimized@0.10.4/dist/gif.worker.js';
+      const gif = new window.GIF({
+        workers: 2,
+        quality: 10,
+        workerScript,
+        width,
+        height,
+        repeat
+      });
+
+      gif.on('progress', (p) => {
+        const pct = Math.min(100, Math.round(p * 100));
+        progressBar.style.width = pct + '%';
+        progressText.textContent = `Encoding… ${pct}%`;
+      });
+
+      gif.on('finished', (blob) => {
+        progressText.textContent = 'Done';
+        const url = URL.createObjectURL(blob);
+        gifPreview.src = url;
+        const kb = (blob.size/1024).toFixed(1);
+        resultMeta.textContent = `Frames: ${files.length} • Size: ${kb} KB`;
+        downloadLink.href = url;
+        downloadLink.download = `animation_${Date.now()}.gif`;
+        resultWrap.classList.remove('hidden');
+      });
+
+      // Prepare a canvas to draw frames consistently
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d', { willReadFrequently: false });
+
+      for (let i=0; i<files.length; i++) {
+        progressText.textContent = `Adding frame ${i+1}/${files.length}…`;
+        const img = await fileToImage(files[i]);
+        ctx.clearRect(0,0,width,height);
+        if (fitContainChk.checked) {
+          // draw contain: pad to first frame size
+          const scale = Math.min(width / img.width, height / img.height);
+          const dw = Math.round(img.width * scale);
+          const dh = Math.round(img.height * scale);
+          const dx = Math.floor((width - dw) / 2);
+          const dy = Math.floor((height - dh) / 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0,0,width,height);
+          ctx.drawImage(img, dx, dy, dw, dh);
+        } else {
+          // stretch to fit
+          ctx.drawImage(img, 0, 0, width, height);
+        }
+        gif.addFrame(ctx, { copy: true, delay: delayMs });
+        await nextFrame(); // keep UI responsive
+      }
+
+      gif.render();
+    } catch (err) {
+      console.error(err);
+      alert('Conversion failed: ' + (err && err.message ? err.message : err));
+    }
+  });
+
+  function fileToImage(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to load image: ' + file.name)); };
+      img.src = url;
+    });
+  }
+
+  function nextFrame() { return new Promise(r => requestAnimationFrame(r)); }
+  </script>
+</body>
+</html>
